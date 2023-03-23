@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}
+  Пост - {{ title }}
+{% endblock %}
+{% block content %}
+  <div class="row">
+        <aside class="col-12 col-md-3">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              📅 Дата публикации: {{ post.pub_date }}
+            </li>
+            {% if post.group %}
+            <li class="list-group-item">
+              #️⃣ Группа: {{ post.group }}
+            </li>
+            {% endif %}
+            <li class="list-group-item">
+              👤 Автор: {{ post.author.get_full_name }}
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              ✍️ Всего постов автора: {{ count_of_posts }}
+            </li>
+            <li class="list-group-item">
+              <a class="btn btn-outline-primary"
+                 href="{% url 'posts:profile' post.author.username %}">
+                 все посты пользователя
+              </a>
+              <p></p>
+              {% if post.group %}
+              <a class="btn btn-outline-primary"
+                 href="{% url 'posts:group_list' post.group.slug %}">
+                 все записи группы</a>
+              {% endif %}
+            </li>
+          </ul>
+        </aside>
+        <article class="col-12 col-md-9">
+          <p></p>
+          <div class="card card-body">
+           {{ post.text }}
+          </div>
+          <p></p>
+          {% if request.user == post.author %}
+            <a class="btn btn-outline-primary"
+               href="{% url 'posts:post_edit' post.id %}">
+              Редактировать запись</a>
+            <p></p>
+          {% endif %}
+        </article>
+      </div>
+{% endblock %}
