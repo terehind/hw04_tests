@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.test import TestCase, Client
-from ..models import Post, Group
+from posts.models import Post, Group
 
 
 class PostsURLTests(TestCase):
