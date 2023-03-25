@@ -2,8 +2,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 
-from .models import Post, Group
-from .forms import PostForm
+from .models import Post, Group, Comment
+from .forms import PostForm, CommentForm
 from .utils import paginator
 
 
@@ -18,7 +18,7 @@ def index(request, count_of_posts=10):
 
 def group_posts(request, slug, count_of_posts=10):
     group = get_object_or_404(Group, slug=slug)
-    posts = Post.objects.filter(group=group).select_related('author', 'group')
+    posts = group.posts.all()
     page_obj = paginator(request, posts, count_of_posts)
     template = 'posts/group_list.html'
     context = {'group': group,
@@ -29,8 +29,7 @@ def group_posts(request, slug, count_of_posts=10):
 
 def profile(request, username, count_of_posts=10):
     author = get_object_or_404(User, username=username)
-    posts = Post.objects.filter(author=author).select_related('author',
-                                                              'group')
+    posts = author = author.posts.all()
     page_obj = paginator(request, posts, count_of_posts)
     template = 'posts/profile.html'
     context = {
@@ -44,9 +43,13 @@ def profile(request, username, count_of_posts=10):
 def post_detail(request, post_id, size_of_title=30):
     post = get_object_or_404(Post, pk=post_id)
     title = post.text[:size_of_title]
-    count_of_posts = Post.objects.filter(author=post.author).count()
+    count_of_posts = post.author.posts.count()
+    form = CommentForm(request.POST or None)
+    comments = Comment.objects.filter(post=post)
     template = 'posts/post_detail.html'
     context = {
+        'form': form,
+        'comments': comments,
         'post': post,
         'title': title,
         'count_of_posts': count_of_posts,
@@ -75,7 +78,10 @@ def post_edit(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     if request.user != post.author:
         return redirect('posts:post_detail', post_id=post_id)
-    form = PostForm(request.POST or None, instance=post)
+    form = PostForm(
+        request.POST or None,
+        files=request.FILES or None,
+        instance=post)
     if request.method == 'POST' and form.is_valid():
         post = form.save(commit=False)
         post.save()
@@ -87,3 +93,15 @@ def post_edit(request, post_id):
         'is_edit': True,
     }
     return render(request, template, context)
+
+
+@login_required
+def add_comment(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    form = CommentForm(request.POST or None)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.author = request.user
+        comment.post = post
+        comment.save()
+    return redirect('posts:post_detail', post_id=post_id)

@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from django.contrib.auth.models import User
 from django.test import TestCase, Client
 from posts.models import Post, Group
@@ -22,42 +24,53 @@ class PostsURLTests(TestCase):
         )
 
     def test_index_url(self):
+        """Тест работы URL главной страницы"""
         response = self.guest_client.get('/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_group_list_url(self):
+        """Тест работы URL страницы постов группы"""
         response = self.guest_client.get('/group/test/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_profile_url(self):
+        """Тест работы URL страницы профиля пользователя"""
         response = self.guest_client.get('/profile/test/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_post_detail_url(self):
+        """Тест работы URL страницы поста"""
         response = self.guest_client.get('/posts/1/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_unexisting_url(self):
+        """Тест работы URL несуществующей страницы"""
         response = self.guest_client.get('/unexisting/')
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     def test_create_post_url(self):
+        """Тест работы URL создания поста"""
         response = self.authorized_client.get('/create/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_edit_post_url(self):
+        """Тест работы URL редактирования поста"""
         response = self.authorized_client.get('/posts/1/edit/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_create_post_url_redirect_login(self):
+        """Тест работы URL создания поста, если пользователь не авторизован"""
         response = self.guest_client.get('/create/', follow=True)
         self.assertRedirects(response, '/auth/login/?next=/create/')
 
     def test_edit_post_url_redirect_login(self):
+        """Тест работы URL редактирования поста, если пользователь
+         не авторизован"""
         response = self.guest_client.get('/posts/1/edit/', follow=True)
         self.assertRedirects(response, '/auth/login/?next=/posts/1/edit/')
 
     def test_urls_uses_correct_template(self):
+        """Тест работы URL использования шаблона"""
         templates_url_names = {
             '/': 'posts/index.html',
             '/group/test/': 'posts/group_list.html',
