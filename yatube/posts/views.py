@@ -29,7 +29,7 @@ def group_posts(request, slug, count_of_posts=10):
 
 def profile(request, username, count_of_posts=10):
     author = get_object_or_404(User, username=username)
-    posts = author = author.posts.all()
+    posts = author.posts.all()
     page_obj = paginator(request, posts, count_of_posts)
     template = 'posts/profile.html'
     context = {
