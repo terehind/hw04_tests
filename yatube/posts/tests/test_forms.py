@@ -34,14 +34,17 @@ class PostCreateTest(TestCase):
 
     def test_edit_post(self):
         """Тест формы редактирования поста"""
+        posts_count = Post.objects.count()
         form_data = {
             'text': 'Test post edited',
             'group': self.group.id,
         }
-
-        self.client.post(
-            reverse('posts:post_edit', args=(self.post.id,)),
-            data=form_data,
-            follow=True)
-        updated_post = Post.objects.get(id=self.post.id)
-        self.assertEqual(updated_post.text, form_data['text'])
+        self.client.post(reverse('posts:post_edit', args=[self.post.id]),
+                         form_data,
+                         follow=True)
+        self.assertEqual(Post.objects.count(), posts_count)
+        self.assertTrue(
+            Post.objects.filter(
+                text=form_data['text'],
+                group=form_data['group'],
+            ).exists())
