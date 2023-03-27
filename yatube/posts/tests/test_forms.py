@@ -31,13 +31,19 @@ class PostCreateTest(TestCase):
                 text=form_data['text'],
                 group=form_data['group'],
             ).exists())
+        new_post = Post.objects.latest('id')
+        self.assertEqual(new_post.text, form_data['text'])
+        self.assertEqual(new_post.author, self.user)
+        self.assertEqual(new_post.group, self.group)
 
     def test_edit_post(self):
         """Тест формы редактирования поста"""
         posts_count = Post.objects.count()
+        old_group = self.group
+        new_group = Group.objects.create(title='new group', slug='new_group')
         form_data = {
             'text': 'Test post edited',
-            'group': self.group.id,
+            'group': new_group.id,
         }
         self.client.post(reverse('posts:post_edit', args=[self.post.id]),
                          form_data,
@@ -48,3 +54,5 @@ class PostCreateTest(TestCase):
                 text=form_data['text'],
                 group=form_data['group'],
             ).exists())
+        self.assertEqual(old_group.posts.count(), 0)
+        self.assertEqual(new_group.posts.count(), 1)
